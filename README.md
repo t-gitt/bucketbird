@@ -1,11 +1,24 @@
 # BucketBird
 
-Full-stack S3 storage management application. The project includes a Go API and a React + Tailwind frontend with Docker Compose orchestration for easy deployment.
+A full-stack S3 storage management application with multi-credential support. BucketBird allows you to manage multiple S3-compatible storage providers (AWS S3, MinIO, DigitalOcean Spaces, etc.) from a single unified interface.
 
-## Services
+## Features
 
-- **backend**: Go 1.23 HTTP API backed by PostgreSQL for metadata and MinIO (S3 compatible) for object storage. Exposes bucket CRUD, presigned URL generation, credentials, and profile endpoints.
-- **frontend**: React 19 single-page application built with Vite, Tailwind CSS, and TanStack Query. The UI mirrors the supplied login, dashboard, bucket content, and settings screens and consumes the backend API.
+- **Multi-Credential Support**: Connect to multiple S3-compatible storage providers simultaneously
+- **User Authentication**: Secure JWT-based authentication with refresh tokens
+- **Bucket Management**: Create, view, update, and delete S3 buckets
+- **Object Operations**: Upload, download, preview, rename, copy, and delete files
+- **Encrypted Credentials**: S3 credentials are encrypted at rest using AES-256-GCM
+- **File Preview**: Built-in preview for images, videos, audio, PDFs, and text files
+- **Modern UI**: Responsive React interface with Tailwind CSS
+- **Docker Deployment**: Complete containerized setup with Docker Compose
+
+## Architecture
+
+- **Backend**: Go HTTP API with Chi router, PostgreSQL for metadata, encrypted credential storage
+- **Frontend**: React 19 SPA with Vite, TypeScript, Tailwind CSS, and TanStack Query
+- **Storage**: Supports any S3-compatible service (MinIO, AWS S3, DigitalOcean, Wasabi, etc.)
+- **Database**: PostgreSQL 15 for user accounts, sessions, bucket metadata, and credentials
 
 ## Prerequisites
 
@@ -13,20 +26,35 @@ Full-stack S3 storage management application. The project includes a Go API and 
 - Node.js 20+ (for local frontend development)
 - Docker & Docker Compose (for full-stack runtime)
 
-## Running with Docker Compose
+## Quick Start
+
+### Using Docker Compose (Recommended)
 
 ```bash
 docker compose up --build
 ```
 
-The compose file now boots four containers:
+This starts four containers:
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080 (health check at `/health`)
-- PostgreSQL: exposed on `localhost:5432` (`bucketbird/bucketbird`)
-- MinIO: S3 API on `localhost:9000`, console on http://localhost:9001 (`minioadmin/minioadmin`)
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **PostgreSQL**: `localhost:5432` (user: `bucketbird`, password: `bucketbird`)
+- **MinIO**: S3 API on `localhost:9000`, Console on http://localhost:9001 (user: `minioadmin`, password: `minioadmin`)
 
-The frontend ships with `public/config.js`, which defaults the API URL to `http://localhost:8080`. Adjust that file (or rebuild with a different `VITE_API_URL` build argument) if you deploy to another host/port.
+### First Steps
+
+1. Open http://localhost:3000 in your browser
+2. Register a new account or use demo credentials (if enabled)
+3. Navigate to Settings → S3 Credentials
+4. Add your first credential:
+   - **Name**: Local MinIO
+   - **Provider**: MinIO
+   - **Endpoint**: http://minio:9000
+   - **Region**: us-east-1
+   - **Access Key**: minioadmin
+   - **Secret Key**: minioadmin
+   - **Use SSL**: No
+5. Create a bucket and start uploading files!
 
 ## Local Development
 
@@ -34,133 +62,275 @@ The frontend ships with `public/config.js`, which defaults the API URL to `http:
 
 ```bash
 cd backend
-go build ./...
-go run ./cmd/bucketbird-api
+go run ./cmd/bucketbird serve
 ```
 
-Configuration is provided through environment variables:
+The backend uses a CLI interface with subcommands. Available commands:
+
+- `serve` - Start the HTTP API server
+- `migrate` - Run database migrations
+- `user create` - Create a new user account
+- `user delete` - Delete a user account
+- `user list` - List all users
+- `user reset-password` - Reset a user's password
+
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BB_APP_NAME` | `bucketbird-api` | Service name used in logs |
-| `BB_ENV` | `development` | Controls log verbosity |
+| `BB_ENV` | `development` | Environment (development/production) |
 | `BB_HTTP_PORT` | `8080` | Port the API listens on |
 | `BB_ALLOWED_ORIGINS` | `*` | Comma-separated list of CORS origins |
-| `BB_HTTP_READ_TIMEOUT` | `30m` | HTTP server read timeout |
-| `BB_HTTP_WRITE_TIMEOUT` | `30m` | HTTP server write timeout |
-| `BB_DB_DSN` | See below | PostgreSQL connection string (`postgres://user:pass@host:port/db?sslmode=disable`) |
 | `BB_DB_HOST` | `postgres` | Database host |
 | `BB_DB_PORT` | `5432` | Database port |
 | `BB_DB_NAME` | `bucketbird` | Database name |
 | `BB_DB_USER` | `bucketbird` | Database user |
 | `BB_DB_PASSWORD` | `bucketbird` | Database password |
-| `BB_JWT_SECRET` | _see config_ | JWT signing secret |
-| `BB_ENCRYPTION_KEY` | _see config_ | Encryption key (must be 32 bytes) |
+| `BB_JWT_SECRET` | _required_ | JWT signing secret (keep secret!) |
+| `BB_ENCRYPTION_KEY` | _required_ | 32-byte key for credential encryption |
 | `BB_ACCESS_TOKEN_TTL` | `15m` | Access token lifetime |
 | `BB_REFRESH_TOKEN_TTL` | `7d` | Refresh token lifetime |
-| `BB_ALLOW_REGISTRATION` | `true` | Set to `false` to disable self-service signup; accounts must be created by an administrator |
+| `BB_ALLOW_REGISTRATION` | `true` | Enable/disable self-service registration |
+| `BB_ENABLE_DEMO_LOGIN` | `false` | Enable demo account for testing |
 
-Key endpoints:
+### API Endpoints
 
-- `GET /health`
-- `GET /api/v1/buckets`
-- `POST /api/v1/buckets` – create a new S3 bucket + metadata record
-- `DELETE /api/v1/buckets/:bucketID` – remove the bucket and metadata
-- `GET /api/v1/buckets/:bucketID/objects`
-- `POST /api/v1/buckets/:bucketID/objects/presign` – generate upload/download URLs
-- `GET /api/v1/credentials`
-- `GET /api/v1/profile`
+**Authentication**
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Login with email/password
+- `POST /api/v1/auth/logout` - Logout and invalidate session
+- `POST /api/v1/auth/refresh` - Refresh access token
+
+**Credentials**
+- `GET /api/v1/credentials` - List user's S3 credentials
+- `POST /api/v1/credentials` - Add new S3 credential
+- `GET /api/v1/credentials/:id` - Get credential details
+- `PUT /api/v1/credentials/:id` - Update credential
+- `DELETE /api/v1/credentials/:id` - Delete credential
+- `POST /api/v1/credentials/:id/test` - Test credential connection
+
+**Buckets**
+- `GET /api/v1/buckets` - List user's buckets
+- `POST /api/v1/buckets` - Create new bucket
+- `GET /api/v1/buckets/:id` - Get bucket details
+- `PATCH /api/v1/buckets/:id` - Update bucket
+- `DELETE /api/v1/buckets/:id` - Delete bucket
+- `GET /api/v1/buckets/:id/objects` - List objects in bucket
+- `POST /api/v1/buckets/:id/objects` - Upload file (presigned URL)
+- `DELETE /api/v1/buckets/:id/objects` - Delete files
+- `PATCH /api/v1/buckets/:id/objects/:key` - Rename/move file
+- `POST /api/v1/buckets/:id/objects/copy` - Copy file
+
+**Profile**
+- `GET /api/v1/profile` - Get current user profile
+- `PATCH /api/v1/profile` - Update user profile
 
 ### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env  # adjust VITE_API_URL if needed
 npm install
 npm run dev
 ```
 
-The Vite dev server runs on http://localhost:5173 by default. The app automatically points API calls to `VITE_API_URL` or to the runtime value from `public/config.js` when built.
+The development server runs on http://localhost:5173. The frontend automatically connects to the backend API at `http://localhost:8080`.
 
-### Testing & Builds
+**Available Scripts:**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 
-- Frontend lint/build: `npm run lint`, `npm run build`
-- Backend build: `go build ./...`
+## User Management
 
-## Admin Tasks
+### Creating Users via CLI
 
-### Creating Users
-
-If self-service registration is disabled (`BB_ALLOW_REGISTRATION=false`), administrators can provision accounts from the CLI:
+If self-service registration is disabled (`BB_ALLOW_REGISTRATION=false`), administrators can create accounts using the CLI:
 
 ```bash
-go run ./backend/cmd/bucketbird-create-user \
+# Using Docker
+docker compose exec backend /app/bucketbird user create \
   --email alex@example.com \
-  --password 'ChangeMe!123' \
+  --password 'SecurePass123!' \
+  --first-name Alex \
+  --last-name Doe
+
+# Local development
+cd backend
+go run ./cmd/bucketbird user create \
+  --email alex@example.com \
+  --password 'SecurePass123!' \
   --first-name Alex \
   --last-name Doe
 ```
 
-The command connects to the configured database, creates the user, and sets up the matching profile record.
+### Resetting Passwords
 
-### Resetting User Passwords
-
-BucketBird includes a CLI tool for administrators to reset user passwords. When users forget their password, they should contact an admin who can reset it using this tool.
-
-#### Option 1: Using Docker (Recommended)
-
-If running BucketBird with Docker Compose:
+Administrators can reset user passwords:
 
 ```bash
-# Build the password reset tool inside the backend container
-docker-compose exec backend go build -o /tmp/bucketbird-password-reset ./cmd/bucketbird-password-reset
+# Using Docker
+docker compose exec backend /app/bucketbird user reset-password \
+  --email user@example.com \
+  --password "NewSecurePass123!"
 
-# Reset a user's password
-docker-compose exec backend /tmp/bucketbird-password-reset --email user@example.com --password "newSecurePass123"
-```
-
-#### Option 2: Local Build
-
-If running the backend locally:
-
-```bash
-# Build the password reset tool
+# Local development
 cd backend
-go build -o bucketbird-password-reset ./cmd/bucketbird-password-reset
-
-# Reset a user's password
-./bucketbird-password-reset --email user@example.com --password "newSecurePass123"
+go run ./cmd/bucketbird user reset-password \
+  --email user@example.com \
+  --password "NewSecurePass123!"
 ```
 
-#### Requirements
+### Listing Users
 
-- Password must be at least 8 characters long
-- The tool uses the same environment variables as the main API (database connection settings)
-- The user must exist in the database (identified by email address)
+View all registered users:
 
-#### Success Output
+```bash
+# Using Docker
+docker compose exec backend /app/bucketbird user list
+
+# Local development
+cd backend
+go run ./cmd/bucketbird user list
+```
+
+### Deleting Users
+
+Remove a user account:
+
+```bash
+# Using Docker
+docker compose exec backend /app/bucketbird user delete \
+  --email user@example.com
+
+# Local development
+cd backend
+go run ./cmd/bucketbird user delete \
+  --email user@example.com
+```
+
+## Database Migrations
+
+The application uses database migrations to manage schema changes:
+
+```bash
+# Using Docker
+docker compose exec backend /app/bucketbird migrate
+
+# Local development
+cd backend
+go run ./cmd/bucketbird migrate
+```
+
+Migrations are automatically run on application startup.
+
+## Security Features
+
+- **Password Hashing**: Argon2id for secure password storage
+- **Credential Encryption**: AES-256-GCM encryption for S3 credentials at rest
+- **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Token Rotation**: Automatic refresh token rotation on use
+- **Session Management**: Database-backed session tracking
+- **CORS Protection**: Configurable allowed origins
+- **Input Validation**: Comprehensive validation on all user inputs
+
+## Project Structure
 
 ```
-✓ Password successfully reset for user: user@example.com (John Doe)
+backend/
+├── cmd/bucketbird/           # Main application entry point
+│   ├── main.go              # CLI entry point
+│   └── cmd/                 # CLI commands (serve, migrate, user)
+├── internal/
+│   ├── api/                 # HTTP handlers by domain
+│   │   ├── auth/           # Authentication endpoints
+│   │   ├── buckets/        # Bucket management endpoints
+│   │   ├── credentials/    # S3 credential endpoints
+│   │   └── profile/        # User profile endpoints
+│   ├── config/             # Configuration management
+│   ├── domain/             # Domain models
+│   ├── middleware/         # HTTP middleware (auth, security, logging)
+│   ├── repository/         # Data access layer
+│   │   └── sqlc/          # Generated SQL queries
+│   ├── service/            # Business logic layer
+│   └── storage/            # S3 object storage client
+├── pkg/
+│   ├── crypto/             # Password hashing & encryption
+│   └── jwt/                # JWT token management
+└── migrations/             # Database migration files
+
+frontend/
+├── src/
+│   ├── api/                # API client
+│   ├── components/         # React components
+│   │   ├── auth/          # Authentication components
+│   │   ├── buckets/       # Bucket management UI
+│   │   ├── files/         # File upload/preview components
+│   │   └── layout/        # Layout components
+│   ├── contexts/          # React contexts (Auth)
+│   ├── hooks/             # Custom React hooks
+│   ├── pages/             # Page components
+│   └── types/             # TypeScript type definitions
+└── public/                # Static assets
+
+config/                     # Configuration files
+docker-compose.yml          # Docker compose orchestration
 ```
 
-For more detailed documentation, see: `backend/cmd/bucketbird-password-reset/README.md`
+## Technology Stack
 
-## Next Steps
+**Backend:**
+- Go 1.23
+- Chi Router - HTTP routing
+- PostgreSQL 15 - Database
+- sqlc - Type-safe SQL
+- AWS SDK for Go v2 - S3 operations
+- Argon2 - Password hashing
+- AES-256-GCM - Credential encryption
 
-- Extend the placeholder pages (Shared, Recent, Trash) with backend-backed data and sharing semantics
-- Introduce automated testing (Go unit tests, React component tests, Playwright E2E) and CI pipelines
-- Add email-based password reset flow for self-service recovery
+**Frontend:**
+- React 19
+- TypeScript
+- Vite - Build tool
+- Tailwind CSS - Styling
+- TanStack Query - Server state management
+- React Router - Client-side routing
 
-## Repository Layout
+**Infrastructure:**
+- Docker & Docker Compose
+- MinIO - S3-compatible storage (for local development)
 
-```
-backend/               # Go API (cmd, internal packages, Dockerfile)
-  ├── cmd/
-  │   ├── bucketbird-api/           # Main API server
-  │   └── bucketbird-password-reset/ # Admin password reset CLI tool
-  └── internal/        # Shared packages (config, data, http, security, storage)
-frontend/              # React SPA (Vite project, Dockerfile)
-docker-compose.yml     # Full-stack runtime definition
-README.md              # This file
-```
+## Supported S3 Providers
+
+BucketBird supports any S3-compatible storage provider:
+
+- **AWS S3** - Amazon's object storage
+- **MinIO** - Self-hosted S3-compatible storage
+- **DigitalOcean Spaces** - DigitalOcean's object storage
+- **Wasabi** - Hot cloud storage
+- **Backblaze B2** - Low-cost cloud storage
+- **Cloudflare R2** - Zero egress fees storage
+- **Custom S3-compatible services**
+
+## Roadmap
+
+- [ ] Trash/restore functionality for deleted files
+- [ ] File sharing with public/private links
+- [ ] User activity tracking and audit logs
+- [ ] Bucket sharing and collaboration
+- [ ] Advanced search and filtering
+- [ ] Batch operations for files
+- [ ] Storage usage analytics and quotas
+- [ ] Email notifications
+- [ ] Two-factor authentication (2FA)
+- [ ] API rate limiting per user
+- [ ] Automated testing (unit, integration, E2E)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## License
+
+This project is available for use under standard open source practices.
