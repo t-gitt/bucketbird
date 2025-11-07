@@ -1,0 +1,70 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: on-failure
+    environment:
+      BB_APP_NAME: bucketbird-api
+      BB_ENV: production
+      BB_HTTP_PORT: "8080"
+      BB_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      BB_DB_HOST: postgres
+      BB_DB_PORT: "5432"
+      BB_DB_NAME: bucketbird
+      BB_DB_USER: bucketbird
+      BB_DB_PASSWORD: bucketbird
+      BB_JWT_SECRET: "change-this-to-a-secure-random-secret-in-production"
+      BB_ENCRYPTION_KEY: "12345678901234567890123456789012"
+      BB_COOKIE_SECURE: "false"
+      BB_ALLOW_REGISTRATION: ${BB_ALLOW_REGISTRATION:-true}
+      BB_ENABLE_DEMO_LOGIN: ${BB_ENABLE_DEMO_LOGIN:-false}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      BB_API_URL: http://localhost:8080
+      BB_ALLOW_REGISTRATION: ${BB_ALLOW_REGISTRATION:-}
+      BB_ENABLE_DEMO_LOGIN: true
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: bucketbird
+      POSTGRES_PASSWORD: bucketbird
+      POSTGRES_DB: bucketbird
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+networks:
+  default:
+    name: bucketbird-network
+
+volumes:
+  pgdata:
+  minio-data:

@@ -1,0 +1,8 @@
+export { default as LoginPage } from './LoginPage'
+export { default as DashboardPage } from './DashboardPage'
+export { default as BucketPage } from './BucketPage'
+export { default as SharedPage } from './SharedPage'
+export { default as RecentPage } from './RecentPage'
+export { default as TrashPage } from './TrashPage'
+export { default as SettingsPage } from './SettingsPage'
+export { default as NotFoundPage } from './NotFoundPage'

@@ -1,0 +1,55 @@
+# Name of your application. Used to uniquely configure containers.
+service: bucketbird
+
+# Name of the container image.
+image: s3-bucketbird/bucketbird-backend
+
+# Deploy to these servers.
+servers:
+  web:
+    - api.bucketbird.xyz
+
+env:
+  clear:
+    BB_APP_NAME: bucketbird-api
+    BB_ENV: production
+    BB_HTTP_PORT: 8080
+    BB_ALLOWED_ORIGINS: https://demo.bucketbird.xyz
+    BB_DB_HOST: bucketbird-db
+    BB_COOKIE_SECURE: true
+    BB_ALLOW_REGISTRATION: false
+    BB_ENABLE_DEMO_LOGIN: true
+  secret:
+    - BB_DB_PORT
+    - BB_DB_NAME
+    - BB_DB_USER
+    - BB_DB_PASSWORD
+    - BB_JWT_SECRET
+    - BB_ENCRYPTION_KEY
+
+proxy:
+  app_port: 8080
+  ssl: true
+  hosts:
+    - api.bucketbird.xyz
+  healthcheck:
+    path: /healthz
+
+
+# Configure builder setup.
+builder:
+  arch: arm64
+  context: ./backend/
+  dockerfile: ./backend/Dockerfile
+
+accessories:
+  db:
+    image: postgres:16-alpine
+    host: api.bucketbird.xyz
+    env:
+      secret:
+        - POSTGRES_DB
+        - POSTGRES_USER
+        - POSTGRES_PASSWORD
+    volumes:
+      - db:/var/lib/postgresql/data

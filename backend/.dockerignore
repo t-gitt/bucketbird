@@ -1,0 +1,5 @@
+.git
+.cache
+vendor
+node_modules
+Dockerfile

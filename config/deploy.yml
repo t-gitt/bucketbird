@@ -1,0 +1,9 @@
+registry:
+  server: ghcr.io
+  username:
+    - KAMAL_REGISTRY_USER
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+ssh:
+  user: root

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BucketBird · Open Source Landing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#hero">
+          <img
+            src="./bucketbird.png"
+            alt="BucketBird logo"
+            class="brand-logo"
+          />
+          <div>
+            <span class="brand-title">BucketBird</span>
+            <span class="brand-tagline">Storage Console</span>
+          </div>
+        </a>
+        <nav class="primary-nav">
+          <a href="https://github.com/" target="_blank" rel="noreferrer"
+            >GitHub</a
+          >
+          <a href="#features">Features</a>
+          <a href="#community">Community</a>
+          <a class="btn-link" href="#donate">Donate</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" id="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">BucketBird is a tiny open-source project</p>
+            <h1>A calm bucket helper for low-key storage chores.</h1>
+            <p class="lede">
+              BucketBird experiments with a lightweight React + Go dashboard that
+              keeps S3-like storage tasks understandable. The scope stays small,
+              and the code grows only when it solves a real headache.
+            </p>
+            <div class="hero-actions">
+              <a class="btn primary" href="https://github.com/" target="_blank" rel="noreferrer"
+                >Browse the code</a
+              >
+              <a class="btn ghost" href="#features">Explore features</a>
+              <a class="btn ghost" href="https://demo.bucketbird.xyz" id="demo-link"
+                >Demo site</a
+              >
+            </div>
+            <ul class="meta-list">
+              <li>MIT Licensed</li>
+              <li>Docker Compose ready</li>
+              <li>Maintained in spare hours</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" id="features">
+          <div class="section-heading">
+            <p class="eyebrow">Why BucketBird</p>
+            <h2>Simple ideas that keep the project grounded.</h2>
+            <p>
+              We aim for clear code, approachable UI, and honest expectations. No
+              lofty promises—just steady improvements informed by actual use.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card">
+              <h3>Familiar stack</h3>
+              <p>
+                Go, React, and PostgreSQL keep the codebase friendly to most
+                contributors and easy to run on a laptop.
+              </p>
+            </article>
+            <article class="feature-card">
+              <h3>Friendly interface</h3>
+              <p>
+                Tailwind-powered screens with good spacing and contrast so you can
+                check objects without wrestling a console.
+              </p>
+            </article>
+            <article class="feature-card">
+              <h3>Documented workflow</h3>
+              <p>
+                Scripts, docker-compose files, and runbooks live in the repo to
+                reduce head-scratching for new folks.
+              </p>
+            </article>
+            <article class="feature-card">
+              <h3>Transparent pace</h3>
+              <p>
+                We post plans and refactor notes so everyone knows what is being
+                explored and what might stay experimental.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section donate" id="donate">
+          <div class="section-heading">
+            <p class="eyebrow">Support the flock</p>
+            <h2>Donations keep this small experiment online.</h2>
+            <p>
+              Funds cover hosting, design audits when feasible, and occasional
+              contributor stipends. Giving is optional, transparent, and not a
+              purchase—BucketBird stays MIT-licensed regardless.
+            </p>
+          </div>
+          <div class="donation-links">
+            <a class="btn primary" href="" target="_blank" rel="noreferrer"
+              >Donate via PayPal</a
+            >
+            <a class="btn ghost" href="bitcoin:bc1qawj2lp8kxzf5n9hew7s72sq2l4e2q72643rgs0"
+              >Donate with Bitcoin</a
+            >
+          </div>
+          <p class="donation-policy">
+            Donation policy: Contributions are voluntary and non-refundable.
+            Spending is documented in the repo (hosting, accessibility tests,
+            meetup credits) and donations never buy special access. Please donate
+            only if it feels comfortable.
+          </p>
+        </section>
+
+        <section class="section" id="community">
+          <div class="section-heading">
+            <p class="eyebrow">Ways to contribute</p>
+            <h2>Small, steady contributions matter most.</h2>
+          </div>
+          <div class="community-grid">
+            <article>
+              <h3>Build features</h3>
+              <p>
+                Tackle backend, frontend, or infra issues that match your time.
+                Even small fixes unblock others quickly.
+              </p>
+            </article>
+            <article>
+              <h3>Document the craft</h3>
+              <p>
+                Capture quick notes, diagrams, or troubleshooting steps. Clear
+                docs keep expectations realistic.
+              </p>
+            </article>
+            <article>
+              <h3>Advocate for accessibility</h3>
+              <p>
+                Test screen readers, contrast, and keyboard paths whenever you
+                have a moment. Kind UX beats flashy additions.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>Made with love · MIT License.</p>
+      </footer>
+    </div>
+  </body>
+</html>

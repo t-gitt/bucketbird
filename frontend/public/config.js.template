@@ -1,0 +1,16 @@
+window.__BUCKETBIRD_CONFIG__ = window.__BUCKETBIRD_CONFIG__ || (function () {
+  const envApiUrl = "$BB_API_URL";
+  const envAllowRegistration = "$BB_ALLOW_REGISTRATION";
+  const envEnableDemoLogin = "$BB_ENABLE_DEMO_LOGIN";
+  const origin = window.location.origin;
+  const fallbackApiUrl = origin.replace(/:\d+$/, ':8080');
+  // Use envApiUrl if it's set and not the placeholder string
+  const apiUrl = envApiUrl && envApiUrl !== '' && !envApiUrl.startsWith('$') ? envApiUrl : fallbackApiUrl;
+  const allowRegistration = envAllowRegistration && envAllowRegistration !== '' && !envAllowRegistration.startsWith('$')
+    ? !/^(false|0|no)$/i.test(envAllowRegistration)
+    : true;
+  const enableDemoLogin = envEnableDemoLogin && envEnableDemoLogin !== '' && !envEnableDemoLogin.startsWith('$')
+    ? !/^(false|0|no)$/i.test(envEnableDemoLogin)
+    : false;
+  return { apiUrl, allowRegistration, enableDemoLogin };
+})();

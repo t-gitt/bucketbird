@@ -1,0 +1,34 @@
+# Name of your application. Used to uniquely configure containers.
+service: bucketbird
+
+# Name of the container image.
+image: s3-bucketbird/bucketbird-web
+
+volumes:
+  - data:/app/data
+
+# Deploy to these servers.
+servers:
+  web:
+    - demo.bucketbird.xyz
+
+env:
+  clear:
+    BB_API_URL: https://api.bucketbird.xyz
+    BB_ALLOW_REGISTRATION: false
+    BB_ENABLE_DEMO_LOGIN: true
+
+proxy:
+  app_port: 80
+  ssl: true
+  hosts:
+    - demo.bucketbird.xyz
+  healthcheck:
+    path: /healthz
+
+
+# Configure builder setup.
+builder:
+  arch: arm64
+  context: ./frontend
+  dockerfile: ./frontend/Dockerfile

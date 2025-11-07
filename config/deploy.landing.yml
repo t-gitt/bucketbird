@@ -1,0 +1,27 @@
+# Name of your application. Used to uniquely configure containers.
+service: bucketbird
+
+# Name of the container image.
+image: s3-bucketbird/bucketbird-landing
+
+volumes:
+  - data:/app/data
+
+# Deploy to these servers.
+servers:
+  web:
+    - bucketbird.xyz
+
+proxy: 
+  app_port: 80
+  ssl: true
+  hosts:
+    - bucketbird.xyz
+    - www.bucketbird.xyz
+
+
+# Configure builder setup.
+builder:
+  arch: arm64
+  context: ./landing
+  dockerfile: ./landing/Dockerfile
